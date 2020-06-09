@@ -67,7 +67,7 @@
 Inside the docker container (from the \texttt{/luigi-qif} directory), run:
 {\footnotesize \begin{itemize}
     \item \texttt{./luigi-qif.py --priors examples/sum.priors --mpc examples/sum.mpc static-leakage}
-    \item \texttt{./luigi-qif.py --priors examples/sum.priors --mpc examples/sum.mpc 3 dynamic-leakage}
+    \item \texttt{./luigi-qif.py --priors examples/sum.priors --mpc examples/sum.mpc dynamic-leakage 3}
 \end{itemize}}
 
 For information on how to interpret the resulting output of the \verb`static-leakage` and \verb`dynamic-leakage` commands, see Section \ref{static} and Section \ref{dynamic}, respectively.
@@ -190,5 +190,7 @@ The above example is a valid SPDZ program. One thing to note about the above exa
 This research was developed with funding from the Defense Advanced Research Projects Agency (DARPA).
 
 The views, opinions and/or findings expressed are those of the author and should not be interpreted as representing the official views or policies of the Department of Defense or the U.S. Government.
+
+DISTRIBUTION STATEMENT A. Approved for public release: distribution unlimited.
 
 \end{document}
