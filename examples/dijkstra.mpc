@@ -1,0 +1,91 @@
+from collections import namedtuple
+
+bool_ite = lambda c, t, f: c.if_else(t, f)
+reveal = lambda x: x.reveal()
+
+NUM_VERTS = 5
+
+# Weight of -1 means no edge
+WEIGHTS_MATRIX = [[None for _ in xrange(NUM_VERTS)] for _ in xrange(NUM_VERTS)]
+for i in xrange(NUM_VERTS):
+    WEIGHTS_MATRIX[i][i] = cint(0)
+for i in xrange(NUM_VERTS):
+    for j in xrange(NUM_VERTS):
+        # TODO: initialize smarter :)
+        if WEIGHTS_MATRIX[i][j] is None:
+            weight = sint.get_private_input_from(i % 2)
+            WEIGHTS_MATRIX[i][j] = weight
+            WEIGHTS_MATRIX[j][i] = weight
+
+
+def ite(cond, ifTrue, ifFalse):
+    if isinstance(ifTrue, list) or isinstance(ifTrue, tuple):
+        assert type(ifFalse) == type(ifTrue)
+        assert len(ifTrue) == len(ifFalse)
+        if type(ifTrue) == list:
+            cons = list
+        elif type(ifTrue) == tuple:
+            cons = tuple
+        else:
+            cons = lambda x: type(ifTrue)(*x)
+        return cons(ite(cond, a, b) for a, b in zip(ifTrue, ifFalse))
+    return bool_ite(cond, ifTrue, ifFalse)
+
+
+STARTING_NODE = 0
+
+VISITED = [cint(0) for node in xrange(NUM_VERTS)]
+
+# -1 means infinity
+DISTANCE = [
+    cint(0) if node == STARTING_NODE else cint(-1)
+    for node in xrange(NUM_VERTS)
+]
+
+min = lambda a, b: ite(a < b, a, b)
+
+
+def choose(i):
+    # Assume that we've picked node i as the next node to look at.
+    # Return an updated distance list.
+    our_weights = WEIGHTS_MATRIX[i]
+    return [
+        ite(
+            our_weights[j] == -1,
+            ifTrue=DISTANCE[j],  # i isn't adjacent to j
+            ifFalse=ite(DISTANCE[j] == -1,
+                        ifTrue=DISTANCE[i] + our_weights[j],
+                        ifFalse=min(DISTANCE[j],
+                                    DISTANCE[i] + our_weights[j])),
+        ) for j in xrange(NUM_VERTS)
+    ]
+
+
+Acu = namedtuple('Acu', 'new_distance new_visited min_distance')
+
+# We step the algorithm NUM_VERTS times. If two nodes are connected by a path,
+# that path must be no longer than the number of verts in the graph.
+for _ in xrange(NUM_VERTS):
+    acu = Acu(DISTANCE, VISITED, cint(-1))
+    for i in xrange(NUM_VERTS):
+        distance_prime = choose(i)
+        visited_prime = [
+            VISITED[j] if i != j else cint(1) for j in xrange(NUM_VERTS)
+        ]
+        acu = ite(
+            VISITED[i] == 1,
+            ifTrue=acu,  # if we've already visited this node, leave it unchanged
+            ifFalse=ite(
+                DISTANCE[i] == -1,
+                ifTrue=
+                acu,  # if we're at an infinite distance, it's definitely not us
+                ifFalse=ite(
+                    ite(acu.min_distance == -1,
+                        ifTrue=cint(0),
+                        ifFalse=acu.min_distance <= DISTANCE[i]),
+                    ifTrue=acu,  # then acu is good, and we aren't doing better
+                    ifFalse=Acu(distance_prime, visited_prime, DISTANCE[i]))))
+    DISTANCE, VISITED, _ = acu
+
+for i, d in enumerate(DISTANCE):
+    print_ln("distance(0, %s) = %s", str(i), reveal(d))

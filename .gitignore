@@ -1,0 +1,11 @@
+_minted*
+target
+.idea
+__pycache__
+*.dSYM
+manual.aux
+manual.log
+manual.out
+examples/*.dot
+examples/*.png
+

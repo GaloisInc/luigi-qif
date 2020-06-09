@@ -1,0 +1,7 @@
+numbers = [sint.get_private_input_from(i) for i in range(10)]
+
+acu = sint(0)
+for x in numbers:
+    acu += x
+
+print_ln("RESULT: %s", acu.reveal())

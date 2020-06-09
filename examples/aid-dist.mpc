@@ -1,0 +1,88 @@
+# This runs the coalitions example in multi-party computation.
+NUM_SHIPS = 5
+NUM_SLOTS = 5
+
+from collections import namedtuple
+from itertools import product
+Slot = namedtuple('Slot', 'present berth_id berth_length slot_start slot_end')
+
+NON_EXISTANT_UNLOAD_TIME = cint(100)
+
+deadline = cint(30)
+port_harbor_depth = sint.get_private_input_from(0)
+port_offload_capacity = sint.get_private_input_from(0)
+port_offload_time = sint.get_private_input_from(0)
+slots = [
+    Slot(cint(1), cint(i), sint.get_private_input_from(0),
+         sint.get_private_input_from(0), sint.get_private_input_from(0))
+    for i in range(NUM_SLOTS)
+]
+
+
+def ite(cond, ifTrue, ifFalse):
+    if isinstance(ifTrue, tuple):
+        assert isinstance(ifFalse, tuple)
+        assert len(ifTrue) == len(ifFalse)
+        return tuple(ite(cond, a, b) for a, b in zip(ifTrue, ifFalse))
+    return cond.if_else(ifTrue, ifFalse)
+
+
+smin = lambda a, b: ite(a < b, a, b)
+smax = lambda a, b: ite(a > b, a, b)
+
+
+# Takes a list of pairs [(key, result)]
+def smin_list(lst):
+    assert len(lst) > 0
+    assert isinstance(lst, list)
+    assert isinstance(lst[0], tuple)
+    if len(lst) == 1:
+        return lst[0]
+    elif len(lst) == 2:
+        (ka, ra), (kb, rb) = lst
+        return (ite(ka < kb, ka, kb), ite(ka < kb, ra, rb))
+    else:
+        border = len(lst) // 2
+        a = lst[border:]
+        b = lst[:border]
+        return smin_list([smin_list(a), smin_list(b)])
+
+
+def land(*xs):
+    result = 1
+    for x in xs:
+        result = x.if_else(result, sint(0))
+    return result
+
+
+class Ship(namedtuple('Ship', 'id cargo arrivalTime length draft')):
+    @property
+    def passes_step_b(self):
+        return land(self.id > 0, self.draft <= port_harbor_depth,
+                    self.cargo <= port_offload_capacity)
+
+    def step_c(self, slot):
+        cond = land(
+            self.passes_step_b,
+            self.length <= slot.berth_length,
+            self.arrivalTime + port_offload_time <= slot.slot_end,
+        )
+        return ite(cond, smax(self.arrivalTime, slot.slot_start),
+                   NON_EXISTANT_UNLOAD_TIME)
+
+
+new_ship = lambda: Ship(sint.get_private_input_from(
+    0), sint.get_private_input_from(0), sint.get_private_input_from(
+        0), sint.get_private_input_from(0), sint.get_private_input_from(0))
+
+# A ship is only input if step A succeeds
+ships = [new_ship() for _ in range(NUM_SHIPS)]
+
+unload_time, (ship_id, berth_id) = smin_list([
+    (ship.step_c(slot), (ship.id, slot.berth_id))
+    for ship, slot in product(ships, slots)
+])
+
+unload_time.reveal()
+ite(unload_time == NON_EXISTANT_UNLOAD_TIME, -1, ship_id).reveal()
+ite(unload_time == NON_EXISTANT_UNLOAD_TIME, -1, berth_id).reveal()

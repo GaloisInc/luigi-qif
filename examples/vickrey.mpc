@@ -1,0 +1,53 @@
+# This example run a Vickrey (second-price auction) using multiparty computation.
+
+from collections import namedtuple
+import os
+
+N_PARTIES = int(os.environ['N_PARTIES']) if 'N_PARTIES' in os.environ else 10
+
+bids = [(sint(party), sint.get_private_input_from(party % 2))
+        for party in xrange(N_PARTIES)]
+
+
+def ite(cond, ifTrue, ifFalse):
+    if isinstance(ifTrue, list) or isinstance(ifTrue, tuple):
+        assert type(ifFalse) == type(ifTrue)
+        assert len(ifTrue) == len(ifFalse)
+        if type(ifTrue) == list:
+            cons = list
+        elif type(ifTrue) == tuple:
+            cons = tuple
+        else:
+            cons = lambda x: type(ifTrue)(*x)
+        return cons(ite(cond, a, b) for a, b in zip(ifTrue, ifFalse))
+    return cond.if_else(ifTrue, ifFalse)
+
+
+Acu = namedtuple('Acu', 'max_bid max_bid_party snd_max_bid')
+
+acu = Acu(
+    max_bid=bids[0][1],
+    max_bid_party=0,
+    snd_max_bid=-1,
+)
+for party, bid in bids[1:]:
+    acu = ite(
+        bid >= acu.max_bid,
+        ifTrue=Acu(
+            max_bid=bid,
+            max_bid_party=party,
+            snd_max_bid=acu.max_bid,
+        ),
+        ifFalse=ite(
+            bid > acu.snd_max_bid,
+            ifTrue=Acu(
+                max_bid=acu.max_bid,
+                max_bid_party=acu.max_bid_party,
+                snd_max_bid=bid,
+            ),
+            ifFalse=acu,
+        ),
+    )
+
+print_ln("Winner: %s; price: %s", acu.max_bid_party.reveal(),
+         acu.snd_max_bid.reveal())
