@@ -50,9 +50,10 @@ let
         boost
     ];
     nativeBuildInputs = [cmake];
-    src = fetchurl {
-      url = https://github.com/meelgroup/ApproxMC/archive/403a78c662aab107847b8d3185b7eac4ff02e3a1.tar.gz;
-      sha256 = "0mwhywbr4h3ylx18j2yi0m5lxkck6y8as12w2r780v7vbx9dq92v";
+    src = fetchGit {
+      url = "https://github.com/meelgroup/ApproxMC.git";
+      ref = "refs/heads/approxmc3";
+      rev = "403a78c662aab107847b8d3185b7eac4ff02e3a1";
     };
   };
 in {
