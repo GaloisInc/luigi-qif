@@ -1,7 +1,7 @@
 # `luigi-qif`
 
 `luigi-qif` helps users locate and _plumb_ information _leaks_ in their secure computation code.
-Please see `manual.pdf` for details.
+Please see `manual.pdf` for details about this tool, and [our blog post on measuring the privacy of computations](https://galois.com/blog/2020/07/measuring-the-privacy-of-computations/) for an overview of the motivation for this work.
 
 # Quickstart (with Docker)
 
